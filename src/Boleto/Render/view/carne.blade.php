@@ -26,7 +26,7 @@
                                 <tr>
                                     <td style="border: none; border-right: 1px solid #000;">
                                         <div class="titulo">Parcela/Plano</div>
-                                        <div class="conteudo">{{ $numero_controle }}</div>
+                                        <div class="conteudo">{{ $i + 1 }}/{{ count($boletos) }}</div>
                                     </td>
                                     <td style="border: none;">
                                         <div class="titulo">Vencimento</div>
@@ -39,7 +39,7 @@
                     </tr>
                     <tr>
                         <td>
-                            <div class="titulo">Ag/Cód. Beneficiário</div>
+                            <div class="titulo">Ag/Cód. Intermediador</div>
                             <div class="conteudo" style="text-align: center;">{{ $agencia_codigo_beneficiario }}</div>
                         </td>
                     </tr>
@@ -58,13 +58,13 @@
                     <tr>
                         <td>
                             <div class="titulo">(=) Valor Documento</div>
-                            <div class="conteudo" style="text-align: right;">{{ $valor }}</div>
+                            <div class="conteudo" style="text-align: right;">R$ {{ $valor }}</div>
                         </td>
                     </tr>
                     <tr>
                         <td>
                             <div class="titulo">(-) Descontos / Abatimentos</div>
-                            <div class="conteudo"></div>
+                            <div class="conteudo" style="text-align: right;"></div>
                         </td>
                     </tr>
                     <tr>
@@ -76,13 +76,7 @@
                     <tr>
                         <td>
                             <div class="titulo">(+) Mora / Multa</div>
-                            <div class="conteudo">{{--{{ $mora_multa }}--}}</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="titulo">(+) Outros acréscimos</div>
-                            <div class="conteudo"></div>
+                            <div class="conteudo" style="text-align: right;"></div>
                         </td>
                     </tr>
                     <tr>
@@ -114,10 +108,14 @@
             </div>
             <div style="display: flex; align-items: justify-content; margin-left: 5px; max-height: 100px;">
                 <!-- Ficha de compensação -->
-                @include('BoletoHtmlRender::partials/ficha-compensacao')
+                @include('BoletoHtmlRender::partials/ficha-compensacao', ['collection' => true])
             </div>
             <div style="clear: both"></div>
+
+            @if(($i+1) % 3 !== 0)
             <div class="linha-pontilhada">Corte na linha pontilhada</div>
+            @endif
+
         </div>
 
         @if(count($boletos) > 3 && $i > 0 && ($i+1) % 3 === 0)
