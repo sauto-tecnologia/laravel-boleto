@@ -33,21 +33,39 @@
             </div>
         @endif
 
-        <div class="linha-pontilhada" style="margin-bottom: 20px;">Recibo do pagador</div>
+        <div class="linha-pontilhada" style="margin-bottom: 15px;">Recibo do pagador</div>
 
-        <div class="info-empresa">
-            @if ($logo)
-                <div style="display: inline-block;">
-                    <img alt="logo" src="{{ $logo_base64 }}"/>
+        @if ($qrcode)
+            <div style="display: flex; justify-content: end; font-family: Arial, sans-serif; font-size: 11px; margin-bottom: 5px; font-weight: bold; margin-right: 14px;">Pague via Pix</div>
+        @endif
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+
+            <div class="info-empresa">
+                @if ($logo)
+                    <div style="display: inline-block;">
+                        <img alt="logo" style="max-width: 120px; max-height: 60px;" src="{{ $logo_base64 }}"/>
+                    </div>
+                @endif
+                <div style="display: inline-block; vertical-align: super; margin-left: 16px;">
+                    <div style="text-transform: uppercase;"><strong>{{ $beneficiario['nome'] }}</strong></div>
+                    <div>{{ $beneficiario['documento'] }}</div>
+                    <div>{{ $beneficiario['endereco'] }}</div>
+                    <div>{{ $beneficiario['endereco2'] }}</div>
                 </div>
-            @endif
-            <div style="display: inline-block; vertical-align: super;">
-                <div><strong>{{ $beneficiario['nome'] }}</strong></div>
-                <div>{{ $beneficiario['documento'] }}</div>
-                <div>{{ $beneficiario['endereco'] }}</div>
-                <div>{{ $beneficiario['endereco2'] }}</div>
+
+            </div>
+            <div style="display: flex; justify-content: end; vertical-align: super; margin-left: 16px;">
+
+                @if ($qrcode)
+
+                    <img src="{{ env('APP_API_URL').'v1/qrcode?s=150&text='.urlencode($qrcode) }}" width="150px" height="150px">
+
+                @endif
+
             </div>
         </div>
+
         <br>
 
         <table class="table-boleto" cellpadding="0" cellspacing="0" border="0">
@@ -65,15 +83,15 @@
             </tr>
             <tr>
                 <td colspan="2" width="250" class="top-2">
-                    <div class="titulo">Beneficiário</div>
-                    <div class="conteudo">{{ $beneficiario['nome'] }}</div>
+                    <div class="titulo">Intermediador</div>
+                    <div class="conteudo">{{ $sacador_avalista['nome'] }}</div>
                 </td>
                 <td class="top-2">
                     <div class="titulo">CPF/CNPJ</div>
-                    <div class="conteudo">{{ $beneficiario['documento'] }}</div>
+                    <div class="conteudo">{{ $sacador_avalista['documento'] }}</div>
                 </td>
                 <td width="120" class="top-2">
-                    <div class="titulo">Ag/Cod. Beneficiário</div>
+                    <div class="titulo">Ag/Cod. Intermediador</div>
                     <div class="conteudo rtl">{{ $agencia_codigo_beneficiario }}</div>
                 </td>
                 <td width="120" class="top-2">
@@ -83,8 +101,8 @@
             </tr>
             <tr>
                 <td colspan="3">
-                    <div class="titulo">Pagador</div>
-                    <div class="conteudo">{{ $pagador['nome_documento'] }} </div>
+                    <div class="titulo">Beneficiário</div>
+                    <div class="conteudo">{{ $beneficiario['nome_documento'] }}</div>
                 </td>
                 <td>
                     <div class="titulo">Nº documento</div>
@@ -93,6 +111,20 @@
                 <td>
                     <div class="titulo">Nosso número</div>
                     <div class="conteudo rtl">{{ $nosso_numero_boleto }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <div class="titulo">Pagador</div>
+                    <div class="conteudo">{{ $pagador['nome_documento'] }} </div>
+                </td>
+                <td>
+                    <div class="titulo">(-) Descontos / Abatimentos</div>
+                    <div class="conteudo rtl"></div>
+                </td>
+                <td>
+                    <div class="titulo">(=) Valor Documento</div>
+                    <div class="conteudo rtl">R$ {{ $valor }}</div>
                 </td>
             </tr>
             <tr>
@@ -106,28 +138,24 @@
                 </td>
                 <td>
                     <div class="titulo">Valor</div>
-                    <div class="conteudo rtl"></div>
+                    <div class="conteudo rtl">R$ {{ $valor }}</div>
                 </td>
                 <td>
-                    <div class="titulo">(-) Descontos / Abatimentos</div>
+                    <div class="titulo">(+) Outros acréscimos</div>
                     <div class="conteudo rtl"></div>
-                </td>
-                <td>
-                    <div class="titulo">(=) Valor Documento</div>
-                    <div class="conteudo rtl">{{ $valor }}</div>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <div class="conteudo"></div>
-                    <div class="titulo">Demonstrativo</div>
                 </td>
                 <td>
                     <div class="titulo">(-) Outras deduções</div>
                     <div class="conteudo"></div>
                 </td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <div class="conteudo"></div>
+                    <div class="titulo">Demonstrativo</div>
+                </td>
                 <td>
-                    <div class="titulo">(+) Outros acréscimos</div>
+                    <div class="titulo">(+) Mora / Multa</div>
                     <div class="conteudo rtl"></div>
                 </td>
                 <td>
@@ -137,7 +165,7 @@
             </tr>
             <tr>
                 <td colspan="4">
-                    <div style="margin-top: 10px" class="conteudo">{{ $demonstrativo[0] }}</div>
+                    <div style="margin-top: 10px" class="conteudo">{{ $descricao }}</div>
                 </td>
                 <td class="noleftborder">
                     <div class="titulo">Autenticação mecânica</div>
@@ -145,22 +173,12 @@
             </tr>
             <tr>
                 <td colspan="5" class="notopborder">
-                    <div class="conteudo">{{ $demonstrativo[1] }}</div>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="5" class="notopborder">
-                    <div class="conteudo">{{ $demonstrativo[2] }}</div>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="5" class="notopborder">
-                    <div class="conteudo">{{ $demonstrativo[3] }}</div>
+                    <div class="conteudo">{{ $demonstrativo[0] }}</div>
                 </td>
             </tr>
             <tr>
                 <td colspan="5" class="notopborder bottomborder">
-                    <div style="margin-bottom: 10px;" class="conteudo">{{ $demonstrativo[4] }}</div>
+                    <div style="margin-bottom: 10px;" class="conteudo">{{ $demonstrativo[1] }}</div>
                 </td>
             </tr>
             </tbody>
@@ -170,7 +188,7 @@
         <br>
 
         <!-- Ficha de compensação -->
-        @include('BoletoHtmlRender::partials/ficha-compensacao')
+        @include('BoletoHtmlRender::partials/ficha-compensacao', ['collection' => false])
 
         @if(count($boletos) > 1 && count($boletos)-1 != $i)
             <div style="page-break-before:always"></div>

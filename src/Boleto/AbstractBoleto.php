@@ -227,6 +227,19 @@ abstract class AbstractBoleto implements BoletoContract
      */
     protected $localPagamento = 'Pagável em qualquer agência bancária até o vencimento.';
     /**
+     * qrcode
+     *
+     * @var string
+     */
+    protected $qrcode;
+
+    /**
+     * descricao
+     *
+     * @var string
+     */
+    protected $descricao;
+    /**
      * Array com as linhas de instruções
      *
      * @var array
@@ -927,6 +940,7 @@ abstract class AbstractBoleto implements BoletoContract
         return $this;
     }
 
+
     /**
      * Retorna o local de pagamento do boleto
      *
@@ -936,6 +950,59 @@ abstract class AbstractBoleto implements BoletoContract
     {
         return $this->localPagamento;
     }
+
+     /**
+     * Define qrcode
+     *
+     * @param  string $qrcode
+     *
+     * @return AbstractBoleto
+     */
+    public function setQrcode($qrcode)
+    {
+
+        $this->qrcode = $qrcode;
+
+        return $this;
+    }
+
+    /**
+     * Retorna qrcode
+     *
+     * @return string
+     */
+    public function getQrcode()
+    {
+
+        return $this->qrcode;
+    }
+
+    /**
+     * Define descricao
+     *
+     * @param  string $descricao
+     *
+     * @return AbstractBoleto
+     */
+    public function setDescricao($descricao)
+    {
+
+        $this->descricao = $descricao;
+
+        return $this;
+    }
+
+    /**
+     * Retorna descricao
+     *
+     * @return string
+     */
+    public function getDescricao()
+    {
+
+        return $this->descricao;
+    }
+
 
     /**
      * Define a moeda utilizada pelo boleto
@@ -1642,6 +1709,8 @@ abstract class AbstractBoleto implements BoletoContract
                 'instrucoes' => $this->getInstrucoes(),
                 'instrucoes_impressao' => $this->getInstrucoesImpressao(),
                 'local_pagamento' => $this->getLocalPagamento(),
+                'qrcode' => $this->getQrcode(),
+                'descricao' => $this->getDescricao(),
                 'numero' => $this->getNumero(),
                 'numero_documento' => $this->getNumeroDocumento(),
                 'numero_controle' => $this->getNumeroControle(),

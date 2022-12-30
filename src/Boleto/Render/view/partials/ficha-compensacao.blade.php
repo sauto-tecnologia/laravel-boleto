@@ -21,14 +21,19 @@
             <div class="conteudo rtl">{{ $data_vencimento->format('d/m/Y') }}</div>
         </td>
     </tr>
-    <tr class="@if($mostrar_endereco_ficha_compensacao) duas-linhas @endif">
-        <td colspan="7">
+    <tr class="@if($mostrar_endereco_ficha_compensacao) duas-linhas @endif" style="vertical-align: top; height: 40px;">
+        <td colspan="4">
             <div class="titulo">Beneficiário</div>
             <div class="conteudo">{{ $beneficiario['nome_documento'] }}</div>
             @if($mostrar_endereco_ficha_compensacao)<div class="conteudo">{{ $beneficiario['endereco_completo'] }}</div>@endif
         </td>
+        <td colspan="3">
+            <div class="titulo">Intermediador</div>
+            <div class="conteudo">{{ $sacador_avalista['nome_documento'] }}</div>
+            @if($mostrar_endereco_ficha_compensacao)<div class="conteudo">{{ $sacador_avalista['nome_documento'] }}</div>@endif
+        </td>
         <td>
-            <div class="titulo">Agência/Código beneficiário</div>
+            <div class="titulo">Agência/Código Intermediador</div>
             <div class="conteudo rtl">{{ $agencia_codigo_beneficiario }}</div>
         </td>
     </tr>
@@ -87,26 +92,54 @@
         </td>
         <td width="110">
             <div class="titulo">Valor</div>
-            <div class="conteudo"></div>
+            <div class="conteudo">R$ {{ $valor }}</div>
         </td>
         <td>
             <div class="titulo">(=) Valor do Documento</div>
-            <div class="conteudo rtl">{{ $valor }}</div>
+            <div class="conteudo rtl">R$ {{ $valor }}</div>
         </td>
     </tr>
     <tr>
-        <td colspan="7">
+        <td colspan="@if ($qrcode && !!$collection) 6 @else 7 @endif">
             <div class="titulo">Instruções de responsabilidade do beneficiário. Qualquer dúvida sobre este boleto, contate o beneficiário</div>
         </td>
+
+        @if ($qrcode && !!$collection)
+        <td colspan="1" rowspan="4">
+            <div style="display: flex; justify-content: center; align-items: center;">
+                <img src="{{ env('APP_API_URL').'v1/qrcode?text='.urlencode($qrcode) }}" width="100px" height="100px" alt="">
+            </div>
+        </td>
+        @endif
+
         <td>
             <div class="titulo">(-) Descontos / Abatimentos</div>
             <div class="conteudo rtl"></div>
         </td>
     </tr>
     <tr>
-        <td colspan="7" class="notopborder">
-            <div class="conteudo">{{ $instrucoes[0] }}</div>
-            <div class="conteudo">{{ $instrucoes[1] }}</div>
+        <td colspan="@if ($qrcode && !!$collection) 6 @else 7 @endif" class="notopborder">
+            @if ($desconto)
+            <div class="conteudo">Desconto de R$ {{ $desconto }} até o vencimento</div>
+            @endif
+
+            @if ($multa || $juros)
+            <div class="conteudo">
+                Sujeito a
+                
+                @if ($multa)
+                multa de R$ {{ $multa }}
+                @endif 
+
+                @if ($multa && $juros) e @endif
+
+                @if ($juros)
+                juros de {{ $juros }}%
+                @endif
+
+                após o vencimento
+            </div>
+            @endif
         </td>
         <td>
             <div class="titulo">(-) Outras deduções</div>
@@ -114,9 +147,9 @@
         </td>
     </tr>
     <tr>
-        <td colspan="7" class="notopborder">
-            <div class="conteudo">{{ $instrucoes[2] }}</div>
-            <div class="conteudo">{{ $instrucoes[3] }}</div>
+        <td colspan="@if ($qrcode && !!$collection) 6 @else 7 @endif" class="notopborder">
+            <div class="conteudo">{{ $instrucoes[0] }}</div>
+            <div class="conteudo">{{ $descricao }}</div>
         </td>
         <td>
             <div class="titulo">(+) Mora / Multa {{ $codigo_banco == '104' ? '/ Juros' : '' }}</div>
@@ -124,17 +157,7 @@
         </td>
     </tr>
     <tr>
-        <td colspan="7" class="notopborder">
-            <div class="conteudo">{{ $instrucoes[4] }}</div>
-            <div class="conteudo">{{ $instrucoes[5] }}</div>
-        </td>
-        <td>
-            <div class="titulo">(+) Outros acréscimos</div>
-            <div class="conteudo rtl"></div>
-        </td>
-    </tr>
-    <tr>
-        <td colspan="7" class="notopborder">
+        <td colspan="@if ($qrcode && !!$collection) 6 @else 7 @endif" class="notopborder">
             <div class="conteudo">{{ $instrucoes[6] }}</div>
             <div class="conteudo">{{ $instrucoes[7] }}</div>
         </td>
@@ -144,21 +167,26 @@
         </td>
     </tr>
     <tr>
-        <td colspan="7">
+        <td colspan="@if ($qrcode && !!$collection) 6 @else 7 @endif">
             <div class="titulo">Pagador</div>
             <div class="conteudo">{{ $pagador['nome_documento'] }}</div>
             <div class="conteudo">{{ $pagador['endereco'] }}</div>
             <div class="conteudo">{{ $pagador['endereco2'] }}</div>
 
         </td>
+
+        @if ($qrcode && !!$collection)
+        <td class="noleftborder" colspan="1" rowspan="1"></td>
+        @endif
+
         <td class="noleftborder">
             <div class="titulo" style="margin-top: 50px">Cód. Baixa</div>
         </td>
     </tr>
 
     <tr>
-        <td colspan="6" class="noleftborder">
-            <div class="titulo">Sacador/Avalista
+        <td colspan="@if ($qrcode && !!$collection) 6 @else 7 @endif" class="noleftborder">
+            <div class="titulo">Intermediador
                 <div class="conteudo sacador">{{ $sacador_avalista ? $sacador_avalista['nome_documento'] : '' }}</div>
             </div>
         </td>
@@ -168,9 +196,17 @@
     </tr>
 
     <tr>
-        <td colspan="8" class="noborder">
+        <td colspan="7" class="noborder" style="padding-top: 10px;">
             {!! $codigo_barras !!}
         </td>
+
+        <td colspan="1" class="noborder rtl" style="padding-top: 10px;">
+            @if ($qrcode && !!!$collection)
+                <div style="display: flex; justify-content: end; font-family: Arial, sans-serif; font-size: 11px; margin-bottom: 5px; font-weight: bold; margin-right: 14px;">Pague via Pix</div>
+                <img src="{{ env('APP_API_URL').'v1/qrcode?text='.urlencode($qrcode) }}" alt="">
+            @endif
+        </td>
+
     </tr>
 
     </tbody>
