@@ -195,6 +195,27 @@ class CalculoDV
     {
         return Util::modulo11($nossoNumero);
     }
+	
+    /*
+    |--------------------------------------------------------------------------
+    | 136 - Unicred
+    |--------------------------------------------------------------------------
+    */
+    public static function unicredAgencia($agencia)
+    {
+        $dv = Util::modulo11($agencia);
+        return $dv == 11 ? 0 : $dv;
+    }
+
+    public static function unicredContaCorrente($contaCorrente)
+    {
+        return Util::modulo11($contaCorrente);
+    }
+
+    public static function unicredNossoNumero($nossoNumero)
+    {
+        return Util::modulo11( Util::numberFormatGeral($nossoNumero, 10) );
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -243,11 +264,11 @@ class CalculoDV
     | 748 - Sicredi - Falta o calculo agencia e conta
     |--------------------------------------------------------------------------
     */
-    public static function sicrediNossoNumero($agencia, $posto, $conta, $ano, $byte, $numero_boleto)
+    public static function sicrediNossoNumero($agencia, $posto, $codigoCliente, $ano, $byte, $numero_boleto)
     {
         $n = Util::numberFormatGeral($agencia, 4)
             . Util::numberFormatGeral($posto, 2)
-            . Util::numberFormatGeral($conta, 5)
+            . Util::numberFormatGeral($codigoCliente, 5)
             . Util::numberFormatGeral($ano, 2)
             . Util::numberFormatGeral($byte, 1)
             . Util::numberFormatGeral($numero_boleto, 5);

@@ -87,9 +87,9 @@ class Bb extends AbstractBoleto implements BoletoContract
     public function getAgenciaCodigoBeneficiario()
     {
         $agencia = $this->getAgencia() . '-' . CalculoDV::bbAgencia($this->getAgencia());
-        $codigoCliente = $this->getConvenio();
+        $codigoCliente = $this->getConta() . '-' . CalculoDV::bbContaCorrente($this->getConta());
 
-        return $agencia . ' / ' . $codigoCliente;
+        return sprintf('%s / %s', $agencia, $codigoCliente);
     }
 
     /**

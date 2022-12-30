@@ -1,4 +1,5 @@
 <?php
+
 namespace Eduardokum\LaravelBoleto\Cnab\Remessa\Cnab400\Banco;
 
 use Eduardokum\LaravelBoleto\CalculoDV;
@@ -126,6 +127,13 @@ class Bb extends AbstractRemessa implements RemessaContract
     protected $variacaoCarteira;
 
     /**
+     * Tipo de cobrança
+     *
+     * @var string
+     */
+    protected $tipoCobranca = self::TIPO_COBRANCA_SIMPLES;
+
+    /**
      * @return mixed
      */
     public function getConvenio()
@@ -190,7 +198,31 @@ class Bb extends AbstractRemessa implements RemessaContract
     }
 
     /**
-     * @return $this
+     * Retorna tipo de cobrança
+     *
+     * @return string
+     */
+    public function getTipoCobranca()
+    {
+        return $this->tipoCobranca;
+    }
+
+    /**
+     * Define tipo de cobrança
+     *
+     * @param string $tipoCobranca
+     *
+     * @return Bb
+     */
+    public function setTipoCobranca($tipoCobranca)
+    {
+        $this->tipoCobranca = $tipoCobranca;
+
+        return $this;
+    }
+
+    /**
+     * @return Bb
      * @throws \Exception
      */
     protected function header()
@@ -224,13 +256,17 @@ class Bb extends AbstractRemessa implements RemessaContract
     /**
      * @param BoletoContract $boleto
      *
-     * @return mixed|void
+     * @return Bb
      * @throws \Exception
      */
     public function addBoleto(BoletoContract $boleto)
     {
         $this->boletos[] = $boleto;
-        $this->iniciaDetalhe();
+        if ($chaveNfe = $boleto->getChaveNfe()) {
+            $this->iniciaDetalheExtendido();
+        } else {
+            $this->iniciaDetalhe();
+        }
 
         $this->add(1, 1, 7);
         $this->add(2, 3, strlen(Util::onlyNumbers($this->getBeneficiario()->getDocumento())) == 14 ? '02' : '01');
@@ -250,7 +286,7 @@ class Bb extends AbstractRemessa implements RemessaContract
         $this->add(92, 94, Util::formatCnab('9', $this->getVariacaoCarteira(), 3));
         $this->add(95, 95, '0');
         $this->add(96, 101, '000000');
-        $this->add(102, 106, '');
+        $this->add(102, 106, Util::formatCnab('X', $this->getTipoCobranca(), 5));
         $this->add(107, 108, $this->getCarteiraNumero());
         $this->add(109, 110, self::OCORRENCIA_REMESSA); // REGISTRO
         if ($boleto->getStatus() == $boleto::STATUS_BAIXA) {
@@ -277,7 +313,7 @@ class Bb extends AbstractRemessa implements RemessaContract
         $this->add(157, 158, $boleto->getStatus() == $boleto::STATUS_BAIXA ? self::INSTRUCAO_BAIXAR : self::INSTRUCAO_SEM);
         $this->add(159, 160, self::INSTRUCAO_SEM);
         $diasProtesto = '00';
-        $const = sprintf('self::INSTRUCAO_PROTESTAR_VENC_%02s', $boleto->getDiasProtesto());
+        $const = $boleto->getDiasProtesto() > 0 ? sprintf('self::INSTRUCAO_PROTESTAR_VENC_%02s', $boleto->getDiasProtesto()) : 'self::INSTRUCAO_NAO_PROTESTAR';
         if ($boleto->getStatus() != $boleto::STATUS_BAIXA) {
             if (defined($const)) {
                 $this->add(157, 158, constant($const));
@@ -304,6 +340,9 @@ class Bb extends AbstractRemessa implements RemessaContract
         $this->add(392, 393, $diasProtesto);
         $this->add(394, 394, '');
         $this->add(395, 400, Util::formatCnab('9', $this->iRegistros + 1, 6));
+        if ($chaveNfe) {
+            $this->add(401, 444, Util::formatCnab('9', $chaveNfe, 44));
+        }
 
         if ($boleto->getMulta() > 0) {
             $this->iniciaDetalhe();
@@ -316,10 +355,12 @@ class Bb extends AbstractRemessa implements RemessaContract
             $this->add(23, 394, '');
             $this->add(395, 400, Util::formatCnab('9', $this->iRegistros + 1, 6));
         }
+
+        return $this;
     }
 
     /**
-     * @return $this
+     * @return Bb
      * @throws \Exception
      */
     protected function trailer()

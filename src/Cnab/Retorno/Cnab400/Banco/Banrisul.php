@@ -5,6 +5,7 @@ use Eduardokum\LaravelBoleto\Cnab\Retorno\Cnab400\AbstractRetorno;
 use Eduardokum\LaravelBoleto\Contracts\Boleto\Boleto as BoletoContract;
 use Eduardokum\LaravelBoleto\Contracts\Cnab\RetornoCnab400;
 use Eduardokum\LaravelBoleto\Util;
+use Illuminate\Support\Arr;
 
 class Banrisul extends AbstractRetorno implements RetornoCnab400
 {
@@ -189,12 +190,13 @@ class Banrisul extends AbstractRetorno implements RetornoCnab400
             ->setNumeroDocumento($this->rem(117, 126, $detalhe))
             ->setNumeroControle($this->rem(38, 62, $detalhe))
             ->setOcorrencia($this->rem(109, 110, $detalhe))
-            ->setOcorrenciaDescricao(array_get($this->ocorrencias, $d->getOcorrencia(), 'Desconhecida'))
+            ->setOcorrenciaDescricao(Arr::get($this->ocorrencias, $d->getOcorrencia(), 'Desconhecida'))
             ->setDataOcorrencia($this->rem(111, 116, $detalhe))
             ->setDataVencimento($this->rem(147, 152, $detalhe))
             ->setDataCredito($this->rem(296, 301, $detalhe))
             ->setValor(Util::nFloat($this->rem(153, 165, $detalhe)/100, 2, false))
             ->setValorTarifa(Util::nFloat($this->rem(176, 188, $detalhe)/100, 2, false))
+            ->setValorOutrasDespesas(Util::nFloat($this->rem(189, 201, $detalhe), 2, false) / 100 )
             ->setValorDesconto(Util::nFloat($this->rem(241, 253, $detalhe)/100, 2, false))
             ->setValorRecebido(Util::nFloat($this->rem(254, 266, $detalhe)/100, 2, false))
             ->setValorMora(Util::nFloat($this->rem(267, 279, $detalhe)/100, 2, false))
@@ -208,11 +210,11 @@ class Banrisul extends AbstractRetorno implements RetornoCnab400
             $this->totais['liquidados']++;
             $ocorrencia = Util::appendStrings(
                 $d->getOcorrenciaDescricao(),
-                array_get($this->baixa_liquidacao, $msgAdicional[0], ''),
-                array_get($this->baixa_liquidacao, $msgAdicional[1], ''),
-                array_get($this->baixa_liquidacao, $msgAdicional[2], ''),
-                array_get($this->baixa_liquidacao, $msgAdicional[3], ''),
-                array_get($this->baixa_liquidacao, $msgAdicional[4], '')
+                Arr::get($this->baixa_liquidacao, $msgAdicional[0], ''),
+                Arr::get($this->baixa_liquidacao, $msgAdicional[1], ''),
+                Arr::get($this->baixa_liquidacao, $msgAdicional[2], ''),
+                Arr::get($this->baixa_liquidacao, $msgAdicional[3], ''),
+                Arr::get($this->baixa_liquidacao, $msgAdicional[4], '')
             );
             $d->setOcorrenciaDescricao($ocorrencia);
             $d->setOcorrenciaTipo($d::OCORRENCIA_LIQUIDADA);
@@ -223,11 +225,11 @@ class Banrisul extends AbstractRetorno implements RetornoCnab400
             $this->totais['baixados']++;
             $ocorrencia = Util::appendStrings(
                 $d->getOcorrenciaDescricao(),
-                array_get($this->baixa_liquidacao, $msgAdicional[0], ''),
-                array_get($this->baixa_liquidacao, $msgAdicional[1], ''),
-                array_get($this->baixa_liquidacao, $msgAdicional[2], ''),
-                array_get($this->baixa_liquidacao, $msgAdicional[3], ''),
-                array_get($this->baixa_liquidacao, $msgAdicional[4], '')
+                Arr::get($this->baixa_liquidacao, $msgAdicional[0], ''),
+                Arr::get($this->baixa_liquidacao, $msgAdicional[1], ''),
+                Arr::get($this->baixa_liquidacao, $msgAdicional[2], ''),
+                Arr::get($this->baixa_liquidacao, $msgAdicional[3], ''),
+                Arr::get($this->baixa_liquidacao, $msgAdicional[4], '')
             );
             $d->setOcorrenciaDescricao($ocorrencia);
             $d->setOcorrenciaTipo($d::OCORRENCIA_BAIXADA);
@@ -239,7 +241,7 @@ class Banrisul extends AbstractRetorno implements RetornoCnab400
             $d->setOcorrenciaTipo($d::OCORRENCIA_ALTERACAO);
         } elseif ($d->hasOcorrencia('03', '24')) {
             $this->totais['erros']++;
-            $d->setError(array_get($this->rejeicoes, $this->rem(383, 392, $detalhe), 'Consulte seu Internet Banking'));
+            $d->setError(Arr::get($this->rejeicoes, $this->rem(383, 392, $detalhe), 'Consulte seu Internet Banking'));
         } else {
             $d->setOcorrenciaTipo($d::OCORRENCIA_OUTROS);
         }

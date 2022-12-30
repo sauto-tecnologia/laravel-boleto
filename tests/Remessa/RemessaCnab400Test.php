@@ -7,6 +7,7 @@ use Eduardokum\LaravelBoleto\Cnab\Remessa\Cnab400\Banco as Remessa;
 use Eduardokum\LaravelBoleto\Pessoa;
 use Eduardokum\LaravelBoleto\Tests\TestCase;
 use Eduardokum\LaravelBoleto\Util;
+use Exception;
 
 class RemessaCnab400Test extends TestCase
 {
@@ -14,7 +15,8 @@ class RemessaCnab400Test extends TestCase
     protected static $pagador;
     protected static $beneficiario;
 
-    public static function setUpBeforeClass(){
+    public static function setUpBeforeClass() : void
+    {
         self::$beneficiario = new Pessoa(
             [
                 'nome' => 'ACME',
@@ -39,7 +41,7 @@ class RemessaCnab400Test extends TestCase
         );
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass() : void
     {
         $aFiles = [
             __DIR__,
@@ -53,10 +55,8 @@ class RemessaCnab400Test extends TestCase
         }
     }
 
-    /**
-     * @expectedException     \Exception
-     */
     public function testRemessaCamposInvalidos(){
+        $this->expectException(Exception::class);
         $remessa = new Remessa\Banrisul([
             'codigoCliente' => 11112222222,
             'beneficiario' => self::$beneficiario,
@@ -64,10 +64,8 @@ class RemessaCnab400Test extends TestCase
         $remessa->gerar();
     }
 
-    /**
-     * @expectedException     \Exception
-     */
     public function testRemessaCarteiraIndisponivel(){
+        $this->expectException(Exception::class);
         $remessa = new Remessa\Banrisul([
             'agencia' => 1111,
             'conta' => 22222,
@@ -208,6 +206,43 @@ class RemessaCnab400Test extends TestCase
         $this->assertEquals($file, $file2);
     }
 
+    public function testRemessaBBCnab400Extendida(){
+        $boleto = new Boleto\Bb(
+            [
+                'logo' => realpath(__DIR__ . '/../logos/') . DIRECTORY_SEPARATOR . '001.png',
+                'dataVencimento' => new \Carbon\Carbon(),
+                'valor' => 100,
+                'multa' => false,
+                'juros' => false,
+                'numero' => 1,
+                'numeroDocumento' => 1,
+                'pagador' => self::$pagador,
+                'beneficiario' => self::$beneficiario,
+                'carteira' => 11,
+                'convenio' => 1234567,
+                'descricaoDemonstrativo' => ['demonstrativo 1', 'demonstrativo 2', 'demonstrativo 3'],
+                'instrucoes' =>  ['instrucao 1', 'instrucao 2', 'instrucao 3'],
+                'aceite' => 'S',
+                'especieDoc' => 'DM',
+                'chaveNfe' => '12345678901234567890123456789012345678901234'
+            ]
+        );
+
+        $remessa = new Remessa\Bb(
+            [
+                'agencia' => 1111,
+                'carteira' => 11,
+                'conta' => 999999999,
+                'convenio' => 1234567,
+                'beneficiario' => self::$beneficiario,
+            ]
+        );
+        $remessa->addBoleto($boleto);
+
+        $cnab = explode($remessa->getFimLinha(), $remessa->gerar());
+        $this->assertEquals(444, strlen($cnab[1]));
+    }
+
     public function testRemessaBradescoCnab400(){
         $boleto = new Boleto\Bradesco(
             [
@@ -255,6 +290,47 @@ class RemessaCnab400Test extends TestCase
 
         $this->assertFileExists($file);
         $this->assertEquals($file, $file2);
+    }
+
+    public function testRemessaBradescoCnab400Extendida(){
+        $boleto = new Boleto\Bradesco(
+            [
+                'logo' => realpath(__DIR__ . '/../logos/') . DIRECTORY_SEPARATOR . '237.png',
+                'dataVencimento' => new \Carbon\Carbon(),
+                'valor' => 100,
+                'multa' => false,
+                'juros' => false,
+                'numero' => 1,
+                'diasBaixaAutomatica' => 2,
+                'numeroDocumento' => 1,
+                'pagador' => self::$pagador,
+                'beneficiario' => self::$beneficiario,
+                'carteira' => '09',
+                'agencia' => 1111,
+                'conta' => 9999999,
+                'descricaoDemonstrativo' => ['demonstrativo 1', 'demonstrativo 2', 'demonstrativo 3'],
+                'instrucoes' =>  ['instrucao 1', 'instrucao 2', 'instrucao 3'],
+                'aceite' => 'S',
+                'especieDoc' => 'DM',
+                'chaveNfe' => '12345678901234567890123456789012345678901234'
+            ]
+        );
+
+        $remessa = new Remessa\Bradesco(
+            [
+                'idRemessa' => 1,
+                'agencia' => 1111,
+                'carteira' => '09',
+                'conta' => 99999999,
+                'contaDv' => 9,
+                'codigoCliente' => 12345678901234567890,
+                'beneficiario' => self::$beneficiario,
+            ]
+        );
+        $remessa->addBoleto($boleto);
+
+        $cnab = explode($remessa->getFimLinha(), $remessa->gerar());
+        $this->assertEquals(444, strlen($cnab[1]));
     }
 
     public function testRemessaCaixaCnab400(){

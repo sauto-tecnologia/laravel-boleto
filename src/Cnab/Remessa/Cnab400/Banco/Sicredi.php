@@ -82,7 +82,38 @@ class Sicredi extends AbstractRemessa implements RemessaContract
     protected $fimArquivo = "\r\n";
 
     /**
-     * @return $this
+     * Codigo do cliente junto ao banco.
+     *
+     * @var string
+     */
+    protected $codigoCliente;
+
+     /**
+     * Retorna o codigo do cliente.
+     *
+     * @return mixed
+     */
+    public function getCodigoCliente()
+    {
+        return $this->codigoCliente;
+    }
+
+    /**
+     * Seta o codigo do cliente.
+     *
+     * @param mixed $codigoCliente
+     *
+     * @return Sicredi
+     */
+    public function setCodigoCliente($codigoCliente)
+    {
+        $this->codigoCliente = $codigoCliente;
+
+        return $this;
+    }
+
+    /**
+     * @return Sicredi
      * @throws \Exception
      */
     protected function header()
@@ -94,7 +125,7 @@ class Sicredi extends AbstractRemessa implements RemessaContract
         $this->add(3, 9, 'REMESSA');
         $this->add(10, 11, '01');
         $this->add(12, 26, Util::formatCnab('X', 'COBRANCA', 15));
-        $this->add(27, 31, Util::formatCnab('9', $this->getConta(), 5));
+        $this->add(27, 31, Util::formatCnab('9', $this->getCodigoCliente(), 5));
         $this->add(32, 45, Util::formatCnab('9L', $this->getBeneficiario()->getDocumento(), 14, 0, 0));
         $this->add(46, 76, '');
         $this->add(77, 79, $this->getCodigoBanco());
@@ -112,7 +143,7 @@ class Sicredi extends AbstractRemessa implements RemessaContract
     /**
      * @param BoletoContract $boleto
      *
-     * @return $this
+     * @return Sicredi
      * @throws \Exception
      */
     public function addBoleto(BoletoContract $boleto)
@@ -122,7 +153,11 @@ class Sicredi extends AbstractRemessa implements RemessaContract
             return $this;
         }
 
-        $this->iniciaDetalhe();
+        if ($chaveNfe = $boleto->getChaveNfe()) {
+            $this->iniciaDetalheExtendido();
+        } else {
+            $this->iniciaDetalhe();
+        }
 
         $this->add(1, 1, '1');
         $this->add(2, 2, 'A');
@@ -151,10 +186,10 @@ class Sicredi extends AbstractRemessa implements RemessaContract
             $this->add(109, 110, self::OCORRENCIA_BAIXA); // BAIXA
         }
         if ($boleto->getStatus() == $boleto::STATUS_ALTERACAO) {
-            $this->add(109, 110, self::OCORRENCIA_ALT_VENCIMENTO); // ALTERAR VENCIMENTO
+            $this->add(109, 110, self::OCORRENCIA_ALT_OUTROS_DADOS); // ALTERAR OUTROS DADOS (Endereço, etc.)
         }
         if ($boleto->getStatus() == $boleto::STATUS_ALTERACAO_DATA) {
-            $this->add(109, 110, self::OCORRENCIA_ALT_VENCIMENTO);
+            $this->add(109, 110, self::OCORRENCIA_ALT_VENCIMENTO); // ALTERAR VENCIMENTO
         }
         if ($boleto->getStatus() == $boleto::STATUS_CUSTOM) {
             $this->add(109, 110, sprintf('%2.02s', $boleto->getComando()));
@@ -189,6 +224,9 @@ class Sicredi extends AbstractRemessa implements RemessaContract
         $this->add(340, 353, $boleto->getSacadorAvalista() ? Util::formatCnab('9L', $boleto->getSacadorAvalista()->getDocumento(), 14) : Util::formatCnab('X', '', 14));
         $this->add(354, 394, Util::formatCnab('X', $boleto->getSacadorAvalista() ? $boleto->getSacadorAvalista()->getNome() : '', 41));
         $this->add(395, 400, Util::formatCnab('9', $this->iRegistros + 1, 6));
+        if ($chaveNfe) {
+            $this->add(401, 444, Util::formatCnab('9', $chaveNfe, 44));
+        }
 
         if ($boleto->getByte() == 1) {
             $this->iniciaDetalhe();
@@ -209,7 +247,7 @@ class Sicredi extends AbstractRemessa implements RemessaContract
     }
 
     /**
-     * @return $this
+     * @return Sicredi
      * @throws \Exception
      */
     protected function trailer()
@@ -219,7 +257,7 @@ class Sicredi extends AbstractRemessa implements RemessaContract
         $this->add(1, 1, '9');
         $this->add(2, 2, '1');
         $this->add(3, 5, $this->getCodigoBanco());
-        $this->add(6, 10, $this->getConta());
+        $this->add(6, 10, $this->getCodigoCliente());
         $this->add(11, 394, '');
         $this->add(395, 400, Util::formatCnab('9', $this->getCount(), 6));
 

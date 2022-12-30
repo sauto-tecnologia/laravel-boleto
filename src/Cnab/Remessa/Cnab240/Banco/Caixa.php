@@ -140,8 +140,8 @@ class Caixa extends AbstractRemessa implements RemessaContract
         }
         $this->add(18, 22, Util::formatCnab('9', $this->getAgencia(), 5));
         $this->add(23, 23, CalculoDV::cefAgencia($this->getAgencia()));
-        $this->add(24, 29, Util::formatCnab('9', $this->getCodigoCliente(), 6));
-        $this->add(30, 37, '00000000');
+        $this->add(24, 30, Util::formatCnab('9', $this->getCodigoCliente(), 7));
+        $this->add(31, 37, '0000000');
         $this->add(38, 39, '00');
         $this->add(40, 57, Util::formatCnab('9', $boleto->getNossoNumero(), 18));
         $this->add(58, 58, '1'); //'1' = Cobrança Simples
@@ -159,7 +159,7 @@ class Caixa extends AbstractRemessa implements RemessaContract
         $this->add(109, 109, Util::formatCnab('9', $boleto->getAceite(), 1));
         $this->add(110, 117, $boleto->getDataDocumento()->format('dmY'));
         $this->add(118, 118, $boleto->getJuros() ? '2' : '3'); //'2' = Percentual Mensal '3' = Isento
-        $this->add(119, 126, $boleto->getDataVencimento()->addDays(1)->format('dmY'));
+        $this->add(119, 126, $boleto->getDataVencimento()->copy()->addDays($boleto->getJurosApos() === false ? 1 : (int)$boleto->getJurosApos())->format('dmY'));
         $this->add(127, 141, Util::formatCnab('9', $boleto->getJuros(), 15, 2)); //Taxa mensal
         $this->add(142, 142, $boleto->getDesconto() > 0 ? '1' : '0'); // 0 = Sem Desconto, 1 = Valor Fixo até a data informada, 2 = Percentual até a data informada
         $this->add(143, 150, $boleto->getDesconto() > 0 ? $boleto->getDataDesconto()->format('dmY') : '00000000');
@@ -290,8 +290,8 @@ class Caixa extends AbstractRemessa implements RemessaContract
         $this->add(33, 52, Util::formatCnab('9', 0, 20));
         $this->add(53, 57, Util::formatCnab('9', $this->getAgencia(), 5));
         $this->add(58, 58, CalculoDV::cefAgencia($this->getAgencia()));
-        $this->add(59, 64, Util::formatCnab('9', $this->getCodigoCliente(), 6));
-        $this->add(65, 72, '00000000');
+        $this->add(59, 65, Util::formatCnab('9', $this->getCodigoCliente(), 7));
+        $this->add(66, 72, '0000000');
         $this->add(73, 102, Util::formatCnab('X', $this->getBeneficiario()->getNome(), 30));
         $this->add(103, 132, Util::formatCnab('X', 'CAIXA ECONOMICA FEDERAL', 30));
         $this->add(133, 142, '');
@@ -329,11 +329,15 @@ class Caixa extends AbstractRemessa implements RemessaContract
         $this->add(17, 17, '');
         $this->add(18, 18, strlen(Util::onlyNumbers($this->getBeneficiario()->getDocumento())) == 14 ? 2 : 1);
         $this->add(19, 33, Util::formatCnab('9', Util::onlyNumbers($this->getBeneficiario()->getDocumento()), 15));
-        $this->add(34, 39, Util::formatCnab('9', Util::onlyNumbers($this->getCodigoCliente()), 6));
-        $this->add(40, 53, Util::formatCnab('9', 0, 14));
+        $this->add(34, 40, Util::formatCnab('9', Util::onlyNumbers($this->getCodigoCliente()), 7));
+        $this->add(41, 53, Util::formatCnab('9', 0, 13));
         $this->add(54, 58, Util::formatCnab('9', $this->getAgencia(), 5));
         $this->add(59, 59, CalculoDV::cefAgencia($this->getAgencia()));
-        $this->add(60, 65, Util::formatCnab('9', Util::onlyNumbers($this->getCodigoCliente()), 6));
+        if(strlen($this->getCodigoCliente()) == 7) {
+            $this->add(60, 65, '000000');
+        } else {
+            $this->add(60, 65, Util::formatCnab('9', Util::onlyNumbers($this->getCodigoCliente()), 6));
+        }
         $this->add(66, 72, '0000000');
         $this->add(73, 73, '0');
         $this->add(74, 103, Util::formatCnab('X', $this->getBeneficiario()->getNome(), 30));

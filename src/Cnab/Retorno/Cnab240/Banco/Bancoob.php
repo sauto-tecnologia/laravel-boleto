@@ -6,6 +6,7 @@ use Eduardokum\LaravelBoleto\Cnab\Retorno\Cnab240\AbstractRetorno;
 use Eduardokum\LaravelBoleto\Contracts\Boleto\Boleto as BoletoContract;
 use Eduardokum\LaravelBoleto\Contracts\Cnab\RetornoCnab240;
 use Eduardokum\LaravelBoleto\Util;
+use Illuminate\Support\Arr;
 
 class Bancoob extends AbstractRetorno implements RetornoCnab240
 {
@@ -281,7 +282,23 @@ class Bancoob extends AbstractRetorno implements RetornoCnab240
 
         if ($this->getSegmentType($detalhe) == 'T') {
             $d->setOcorrencia($this->rem(16, 17, $detalhe))
-                ->setOcorrenciaDescricao(array_get($this->ocorrencias, $this->detalheAtual()->getOcorrencia(), 'Desconhecida'))
+                ->setOcorrenciaDescricao(Arr::get($this->ocorrencias, $this->detalheAtual()->getOcorrencia(), 'Desconhecida'));
+
+            /**
+             * Conforme Manual o campo Nosso Número deve ter 7 dígitos + 1DV.
+             * Ao enviar a remessa formatamos para 10 dígitos preenchendo com zeros a esquerda
+             * Da mesma forma, no arquivo retorno, volta com 10 dígitos.
+             * Portanto, as duas primeiras, posições 38 e 39 serão sempre 00,
+             * seguidos de 7 dígitos + 1 dígito DV = 8 digitos da posição 40 até a 47.
+             *
+             * Para voltar a considerar 10 digitos voltar  trecho de código.
+             * ////->setNossoNumero($this->rem(38, 47, $detalhe))
+             *
+             */
+            if ( $this->rem(38, 39, $detalhe) != "00"){
+                throw new \Exception("Verificar arquivo retorno:  O nosso número no arquivo de retorno é maior que 7 dígitos.");
+            }
+            $d->setNossoNumero($this->rem(40, 47, $detalhe))
                 ->setNossoNumero($this->rem(38, 47, $detalhe))
                 ->setCarteira($this->rem(58, 58, $detalhe))
                 ->setNumeroDocumento($this->rem(59, 73, $detalhe))
@@ -319,11 +336,11 @@ class Bancoob extends AbstractRetorno implements RetornoCnab240
             } elseif ($d->hasOcorrencia('03', '26', '30')) {
                 $this->totais['erros']++;
                 $error = Util::appendStrings(
-                    array_get($this->rejeicoes, $msgAdicional[0], ''),
-                    array_get($this->rejeicoes, $msgAdicional[1], ''),
-                    array_get($this->rejeicoes, $msgAdicional[2], ''),
-                    array_get($this->rejeicoes, $msgAdicional[3], ''),
-                    array_get($this->rejeicoes, $msgAdicional[4], '')
+                    Arr::get($this->rejeicoes, $msgAdicional[0], ''),
+                    Arr::get($this->rejeicoes, $msgAdicional[1], ''),
+                    Arr::get($this->rejeicoes, $msgAdicional[2], ''),
+                    Arr::get($this->rejeicoes, $msgAdicional[3], ''),
+                    Arr::get($this->rejeicoes, $msgAdicional[4], '')
                 );
                 $d->setError($error);
             } else {
