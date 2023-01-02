@@ -1,11 +1,12 @@
 {
-    "name": "eduardokum/laravel-boleto",
+    "name": "sauto-tecnologia/laravel-boleto",
+    "type": "library",
     "description": "Biblioteca com boletos para o laravel",
     "keywords": [
-        "eduardokum",
+        "sauto-tecnologia",
         "laravel-boleto"
     ],
-    "homepage": "https://github.com/eduardokum/laravel-boleto",
+    "homepage": "https://github.com/sauto-tecnologia/laravel-boleto",
     "license": "MIT",
     "authors": [
         {
@@ -30,12 +31,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Eduardokum\\LaravelBoleto\\": "src"
+            "SautoTecnologia\\LaravelBoleto\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Eduardokum\\LaravelBoleto\\Tests\\": "tests"
+            "SautoTecnologia\\LaravelBoleto\\Tests\\": "tests"
         }
     }
 }
