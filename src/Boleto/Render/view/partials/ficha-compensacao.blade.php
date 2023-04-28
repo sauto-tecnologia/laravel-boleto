@@ -40,7 +40,7 @@
     <tr>
         <td width="110" colspan="2">
             <div class="titulo">Data do documento</div>
-            <div class="conteudo">{{ $data_documento->format('d/m/Y') }}</div>
+            <div class="conteudo">{{ date('d/m/Y') }}</div>
         </td>
         <td width="120" colspan="2">
             <div class="titulo">Nº documento</div>
