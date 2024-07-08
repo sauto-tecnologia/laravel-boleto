@@ -107,7 +107,7 @@
         @if ($qrcode && !!$collection)
         <td colspan="1" rowspan="4">
             <div style="display: flex; justify-content: center; align-items: center;">
-                <img src="{{ env('APP_API_URL').'v1/qrcode?text='.urlencode($qrcode) }}" width="100px" height="100px" alt="">
+                <img src="{{ env('APP_API_URL').'v1/qrcode?type=svg&text='.urlencode($qrcode) }}" width="100px" height="100px" alt="">
             </div>
         </td>
         @endif
@@ -203,7 +203,7 @@
         <td colspan="1" class="noborder rtl" style="padding-top: 10px;">
             @if ($qrcode && !!!$collection)
                 <div style="display: flex; justify-content: end; font-family: Arial, sans-serif; font-size: 11px; margin-bottom: 5px; font-weight: bold; margin-right: 14px;">Pague via Pix</div>
-                <img src="{{ env('APP_API_URL').'v1/qrcode?text='.urlencode($qrcode) }}" alt="">
+                <img src="{{ env('APP_API_URL').'v1/qrcode?type=svg&text='.urlencode($qrcode) }}" alt="">
             @endif
         </td>
 
