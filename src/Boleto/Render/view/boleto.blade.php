@@ -59,7 +59,7 @@
 
                 @if ($qrcode)
 
-                    <img src="{{ env('APP_API_URL').'v1/qrcode?s=150&text='.urlencode($qrcode) }}" width="150px" height="150px">
+                    <img src="{{ env('APP_API_URL').'v1/qrcode?s=150&type=svg&text='.urlencode($qrcode) }}" width="150px" height="150px">
 
                 @endif
 
